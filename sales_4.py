@@ -1,21 +1,8 @@
 import cplex
 import sys
 from cplex.exceptions import CplexError
-from tsp_parser import read_path
 from tsplib95 import tsplib95
 from networkx import to_numpy_array
-
-def read_instance(filePath):
-    f = open(filePath, "r")
-    n = int(f.readline())
-    adjMatrix = []
-
-    for i in range(n):
-       l = f.readline()
-       row = [int(i) for i in l.split()]
-       adjMatrix.append(row) 
-
-    return n,adjMatrix
 
 def create_problem(n_vertices, adj_matrix, c):
 
@@ -56,7 +43,6 @@ def create_problem(n_vertices, adj_matrix, c):
             names=nomes_y)
 
     # Para todo vértice, exceto o V(0), e toda variavel y pelo tempo t
-
 
     for j in J:
         equation_i_j = []
@@ -106,7 +92,7 @@ def create_problem(n_vertices, adj_matrix, c):
 
 if __name__ == '__main__':
     c = cplex.Cplex()
-    c.parameters.timelimit.set(30)
+    c.parameters.timelimit.set(3600 * 2) # two hours
     try:
         adj_matrix = to_numpy_array(tsplib95.load_problem(sys.argv[1]).get_graph())
         n = len(adj_matrix)
