@@ -1,6 +1,9 @@
 import cplex
 import sys
 from cplex.exceptions import CplexError
+from tsp_parser import read_path
+from tsplib95 import tsplib95
+from networkx import to_numpy_array
 
 def read_instance(filePath):
     f = open(filePath, "r")
@@ -14,9 +17,9 @@ def read_instance(filePath):
 
     return n,adjMatrix
 
-def create_problem(n_vertices, adj_matrix):
+def create_problem(n_vertices, adj_matrix, c):
 
-    prob = cplex.Cplex()
+    prob = c
     prob.objective.set_sense(prob.objective.sense.minimize)
 
     I = range(len(adj_matrix))
@@ -44,7 +47,7 @@ def create_problem(n_vertices, adj_matrix):
                 nomes_y.append(y % (i,j,t))
 
     # Check se as variáveis estão em quantidades iguais P.S.: o Teste é feito no olho kkkk'
-    print(len(coeficientes_y), len(lower_bounds_y), len(upper_bounds_y), len(tipos_y), len(nomes_y))
+    #print(len(coeficientes_y), len(lower_bounds_y), len(upper_bounds_y), len(tipos_y), len(nomes_y))
 
     prob.variables.add(obj=coeficientes_y, 
             lb=lower_bounds_y, 
@@ -102,9 +105,12 @@ def create_problem(n_vertices, adj_matrix):
     return prob
 
 if __name__ == '__main__':
+    c = cplex.Cplex()
+    c.parameters.timelimit.set(30)
     try:
-        n, adj_matrix = read_instance(sys.argv[1])
-        prob = create_problem(n, adj_matrix)
+        adj_matrix = to_numpy_array(tsplib95.load_problem(sys.argv[1]).get_graph())
+        n = len(adj_matrix)
+        prob = create_problem(n, adj_matrix, c)
         prob.write('modelo.lp')
         prob.solve()
     except CplexError as e:
